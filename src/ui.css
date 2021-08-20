@@ -1,15 +1,18 @@
+:root {
+  color-scheme: light dark;
+}
+body {
+  color: CanvasText;
+  background-color: Canvas;
+}
+
 .container {
   display: flex;
   width: 300px;
   height: 300px;
   font-family: monospace;
-  background: white;
   flex-direction: column;
 
+  gap: 12px;
   position: relative;
-}
-
-#share {
-  height: 48px;
-  width: 72px;
 }

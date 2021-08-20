@@ -6,13 +6,6 @@ import 'prismjs/themes/prism-twilight.css';
 import './ui.css';
 import ExportWay, { SupportWays, supportWays } from './ExportWay';
 
-const removeLF = (str: string, needTrim = false) =>
-  str
-    .split('\n')
-    .map((str) => (needTrim ? str.trim() : str))
-    .filter(Boolean)
-    .join('\n');
-
 const cssToCamelCase = (str: string) =>
   str
     .split('\n')
@@ -94,6 +87,7 @@ const App = () => {
     }
     const code = codeConvert[exportWay](generateCode.current);
     convertedCode.current = code;
+    // camelCase 一般用于 react，所以当作 css 读取就行了。
     if (exportWay === 'camelCase') {
       setCodeHTML(prismjs.highlight(code, prismjs.languages.javascript));
     } else {
@@ -119,7 +113,6 @@ const App = () => {
           style={{
             fontSize: 14,
             width: 270,
-            height: 'clamp(100px, 100%, 240px)',
             overflow: 'scroll',
           }}
           dangerouslySetInnerHTML={{ __html: codeHTML }}
@@ -133,7 +126,7 @@ const App = () => {
               height: 36,
               position: 'absolute',
               right: 0,
-              top: 8,
+              top: 4,
             }}
             type="button"
           >
@@ -141,6 +134,22 @@ const App = () => {
           </button>
         )}
       </div>
+
+      <button
+        style={{
+          display: 'flex',
+          alignSelf: 'stretch',
+          height: 42,
+          borderRadius: 4,
+          backgroundColor: 'ButtonFace',
+          color: 'ButtonText',
+        }}
+        onClick={() =>
+          parent.postMessage({ pluginMessage: { type: 'hide' } }, '*')
+        }
+      >
+        Hide
+      </button>
     </div>
   );
 };

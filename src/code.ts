@@ -65,6 +65,13 @@ const domLayout = (node: AutoLayoutRecord) => {
 const layoutToFlexCSS = (record: AutoLayoutRecord): string => {
   const isVerticalStretch =
     record.layoutMode === 'VERTICAL' && record.layoutAlign === 'STRETCH';
+
+  const isFixed =
+    record.layoutAlign !== 'STRETCH' &&
+    record.counterAxisSizingMode === 'FIXED' &&
+    record.primaryAxisSizingMode === 'FIXED';
+
+  // FIXME: the align-self seems like wrong, I should read its parent to know the layoutMode
   return `
     display: flex;
     flex-direction: ${flexDirection[record.layoutMode]};
@@ -72,8 +79,18 @@ const layoutToFlexCSS = (record: AutoLayoutRecord): string => {
     align-items: ${flexJustify[record.counterAxisAlignItems]};
     gap: ${record.itemSpacing}px;
     flex-grow: ${isVerticalStretch ? 0 : 1};
-    align-self: ${isVerticalStretch ? 'stretch' : 'initial'};
+    align-self: ${record.layoutAlign === 'STRETCH' ? 'stretch' : 'initial'};
     ${domLayout(record)}
+
+    ${
+      isFixed
+        ? `
+    /* for quick look the style, but in the responsive ui, you should delete the code */
+    width: ${record.width}px;
+    height: ${record.height}px;
+    `
+        : ''
+    }
   `;
 };
 
@@ -117,11 +134,16 @@ figma.on('selectionchange', () => {
       bottomRightRadius: 0,
     };
 
-    for (let key in selected) {
+    for (const key in selected) {
+      // if (key === 'parent' && selected[key].type === 'FRAME') {
+      //   console.log((selected[key] as FrameNode).layoutMode);
+      // }
       if (autoLayoutSet.has(key)) {
         attributes[key] = selected[key];
       }
     }
+
+    console.log(attributes, 'selected');
     const css = removeLF(layoutToFlexCSS(attributes), true);
 
     figma.clientStorage.getAsync('exportWay').then((val) => {
@@ -132,6 +154,8 @@ figma.on('selectionchange', () => {
       });
       figma.ui.postMessage({ css, type: 'showcss', exportWay: val });
     });
+  } else {
+    figma.ui.hide();
   }
 });
 
@@ -167,6 +191,9 @@ figma.ui.onmessage = (message) => {
   if (typeof message === 'object' && message !== null) {
     if (message.type === 'storage') {
       figma.clientStorage.setAsync('exportWay', message.val);
+    }
+    if (message.type === 'hide') {
+      figma.ui.hide();
     }
   }
 };
