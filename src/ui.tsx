@@ -59,6 +59,7 @@ const App = () => {
   const generateCode = useRef('');
   const convertedCode = useRef('');
   const [codeHTML, setCodeHTML] = useState('');
+  const [exportWay, setExportWay] = useState<SupportWays | undefined>();
 
   const onShareButtonClick = () => {
     copyToClipboard(convertedCode.current);
@@ -67,20 +68,18 @@ const App = () => {
 
   useEffect(() => {
     onmessage = (event) => {
-      const { css, type } = event.data.pluginMessage;
+      const {
+        css,
+        type,
+        exportWay = supportWays[0],
+      } = event.data.pluginMessage;
 
       if (type === 'showcss' && css) {
+        setExportWay(exportWay);
         generateCode.current = css;
-        const html = prismjs.highlight(
-          generateCode.current,
-          prismjs.languages.css,
-        );
-        setCodeHTML(html);
       }
     };
   }, []);
-
-  const [exportWay, setExportWay] = useState<SupportWays>(supportWays[0]);
 
   useEffect(() => {
     if (!generateCode.current) {
@@ -95,9 +94,18 @@ const App = () => {
     }
   }, [exportWay]);
 
+  const onExportWayChange = (val: SupportWays) => {
+    setExportWay(val);
+    parent.postMessage({ pluginMessage: { type: 'storage', val } }, '*');
+  };
+
+  if (!exportWay) {
+    return null;
+  }
+
   return (
     <div className="container">
-      <ExportWay value={exportWay} onChange={setExportWay} />
+      <ExportWay value={exportWay} onChange={onExportWayChange} />
       <div style={{ position: 'relative' }}>
         <pre
           className="language-css"

@@ -10,7 +10,7 @@ const Radio = ({
   name: string;
   label: string;
   value: SupportWays;
-  onChange: React.Dispatch<React.SetStateAction<SupportWays>>;
+  onChange: (val: SupportWays) => void;
 }) => {
   return (
     <div>
@@ -32,7 +32,7 @@ const ExportWay = ({
   onChange,
 }: {
   value: SupportWays;
-  onChange: React.Dispatch<React.SetStateAction<SupportWays>>;
+  onChange: (val: SupportWays) => void;
 }) => {
   return (
     <fieldset style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

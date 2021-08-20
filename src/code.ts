@@ -1,25 +1,3 @@
-// This plugin creates 5 rectangles on the screen.
-const numberOfRectangles = 5;
-
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs such as the network by creating a UI which contains
-// a full browser environment (see documentation).
-
-// const nodes: SceneNode[] = [];
-// for (let i = 0; i < numberOfRectangles; i++) {
-//   const rect = figma.createRectangle();
-//   rect.x = i * 150;
-//   rect.fills = [{type: 'SOLID', color: {r: 1, g: 0.5, b: 0}}];
-//   figma.currentPage.appendChild(rect);
-//   nodes.push(rect);
-// }
-// figma.currentPage.selection = nodes;
-// figma.viewport.scrollAndZoomIntoView(nodes);
-
-// // Make sure to close the plugin when you're done. Otherwise the plugin will
-// // keep running, which shows the cancel button at the bottom of the screen.
-// figma.closePlugin();
-
 const flexDirection: Record<
   Exclude<BaseFrameMixin['layoutMode'], 'NONE'>,
   'row' | 'column'
@@ -97,8 +75,6 @@ const enableAutoLayout = (node: SceneNode): node is FrameNode => {
   return node.type === 'FRAME' && node.layoutMode !== 'NONE';
 };
 
-let hadMount = false;
-
 const removeLF = (str: string, needTrim = false) =>
   str
     .split('\n')
@@ -139,14 +115,14 @@ figma.on('selectionchange', () => {
     }
     const css = removeLF(layoutToFlexCSS(attributes), true);
 
-    if (!hadMount) {
+    figma.clientStorage.getAsync('exportWay').then((val) => {
       figma.showUI(__html__, {
         title: 'Auto Layout CSS',
         height: 480,
         width: 320,
       });
-    }
-    figma.ui.postMessage({ css, type: 'showcss' });
+      figma.ui.postMessage({ css, type: 'showcss', exportWay: val });
+    });
   }
 });
 
@@ -178,5 +154,10 @@ figma.ui.onmessage = (message) => {
   if (message === 'hide') {
     figma.notify('CSS 复制成功', { timeout: 2000 });
     figma.ui.hide();
+  }
+  if (typeof message === 'object' && message !== null) {
+    if (message.type === 'storage') {
+      figma.clientStorage.setAsync('exportWay', message.val);
+    }
   }
 };
