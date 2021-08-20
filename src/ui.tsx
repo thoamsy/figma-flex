@@ -1,11 +1,47 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as ReactDOM from 'react-dom';
 import prismjs from 'prismjs';
 // import CSS from 'prismjs/components/prism-css';
 import 'prismjs/themes/prism-twilight.css';
 import './ui.css';
+import ExportWay, { SupportWays, supportWays } from './ExportWay';
 
-declare function require(path: string): any;
+const removeLF = (str: string, needTrim = false) =>
+  str
+    .split('\n')
+    .map((str) => (needTrim ? str.trim() : str))
+    .filter(Boolean)
+    .join('\n');
+
+const cssToCamelCase = (str: string) =>
+  str
+    .split('\n')
+    .filter(Boolean)
+    .flatMap((statement) =>
+      statement
+        .split(':')
+        .map((property, index) => {
+          // css 的属性名
+          if (index % 2 == 0) {
+            return property.replace(/(\-.)/g, (a) => a.slice(1).toUpperCase());
+          } else {
+            return `'${property.trim().replace(/;$/, "',")}`;
+          }
+        })
+        .join(': '),
+    )
+    .join('\n');
+
+const codeConvert: Record<SupportWays, (code: string) => string> = {
+  css: (code) => code,
+  emotion: (code) => `
+   style.div = \`
+     ${code}
+   \`
+  `,
+  camelCase: cssToCamelCase,
+  tailwind: (code) => `this is tailwind ��`,
+};
 
 const copyToClipboard = (str) => {
   const el = document.createElement('textarea');
@@ -20,53 +56,76 @@ const copyToClipboard = (str) => {
 };
 
 const App = () => {
+  const generateCode = useRef('');
+  const convertedCode = useRef('');
   const [codeHTML, setCodeHTML] = useState('');
+
   const onShareButtonClick = () => {
-    copyToClipboard(codeHTML);
+    copyToClipboard(convertedCode.current);
     parent.postMessage({ pluginMessage: 'hide' }, '*');
-    // figma.ui.hide();
   };
 
   useEffect(() => {
     onmessage = (event) => {
       const { css, type } = event.data.pluginMessage;
-      console.log(event.data.pluginMessage);
 
       if (type === 'showcss' && css) {
-        const html = prismjs.highlight(css, prismjs.languages.css);
+        generateCode.current = css;
+        const html = prismjs.highlight(
+          generateCode.current,
+          prismjs.languages.css,
+        );
         setCodeHTML(html);
       }
     };
   }, []);
 
+  const [exportWay, setExportWay] = useState<SupportWays>(supportWays[0]);
+
+  useEffect(() => {
+    if (!generateCode.current) {
+      return;
+    }
+    const code = codeConvert[exportWay](generateCode.current);
+    convertedCode.current = code;
+    if (exportWay === 'camelCase') {
+      setCodeHTML(prismjs.highlight(code, prismjs.languages.javascript));
+    } else {
+      setCodeHTML(prismjs.highlight(code, prismjs.languages.css));
+    }
+  }, [exportWay]);
+
   return (
     <div className="container">
-      <pre
-        className="language-css"
-        style={{
-          fontSize: 14,
-          width: 270,
-          height: 'clamp(100px, 100%, 240px)',
-          overflow: 'scroll',
-        }}
-        dangerouslySetInnerHTML={{ __html: codeHTML }}
-      />
-      {codeHTML && (
-        <button
-          onClick={onShareButtonClick}
+      <ExportWay value={exportWay} onChange={setExportWay} />
+      <div style={{ position: 'relative' }}>
+        <pre
+          className="language-css"
           style={{
-            borderRadius: 4,
-            width: 36,
-            height: 36,
-            position: 'absolute',
-            right: 0,
-            top: 8,
+            fontSize: 14,
+            width: 270,
+            height: 'clamp(100px, 100%, 240px)',
+            overflow: 'scroll',
           }}
-          type="button"
-        >
-          <span aria-label="copy">💾</span>
-        </button>
-      )}
+          dangerouslySetInnerHTML={{ __html: codeHTML }}
+        />
+        {codeHTML && (
+          <button
+            onClick={onShareButtonClick}
+            style={{
+              borderRadius: 4,
+              width: 36,
+              height: 36,
+              position: 'absolute',
+              right: 0,
+              top: 8,
+            }}
+            type="button"
+          >
+            <span aria-label="copy">💾</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };

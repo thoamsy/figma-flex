@@ -99,6 +99,13 @@ const enableAutoLayout = (node: SceneNode): node is FrameNode => {
 
 let hadMount = false;
 
+const removeLF = (str: string, needTrim = false) =>
+  str
+    .split('\n')
+    .map((str) => (needTrim ? str.trim() : str))
+    .filter(Boolean)
+    .join('\n');
+
 figma.on('selectionchange', () => {
   const autoLayoutSet = new Set(autoLayoutAttributes as Readonly<string[]>);
   const selected = figma.currentPage.selection[0];
@@ -130,11 +137,8 @@ figma.on('selectionchange', () => {
         attributes[key] = selected[key];
       }
     }
-    const css = layoutToFlexCSS(attributes)
-      .split('\n')
-      .map((str) => str.trim())
-      .filter(Boolean)
-      .join('\n');
+    const css = removeLF(layoutToFlexCSS(attributes), true);
+
     if (!hadMount) {
       figma.showUI(__html__, {
         title: 'Auto Layout CSS',
