@@ -39,13 +39,22 @@ const domLayout = (node: AutoLayoutRecord) => {
   ) {
     borderRadius = `${topLeftRadius}px`;
   } else {
-    borderRadius = `${topLeftRadius}px ${topRightRadius}px ${bottomLeftRadius}px ${bottomRightRadius}px`;
+    borderRadius = [
+      topLeftRadius,
+      topRightRadius,
+      bottomLeftRadius,
+      bottomRightRadius,
+    ]
+      .map((val) => val + 'px')
+      .join(' ');
   }
 
   if (allSame(paddingLeft, paddingRight, paddingBottom, paddingTop)) {
     padding = `${paddingLeft}px`;
   } else {
-    padding = `${paddingLeft}px ${paddingRight}px ${paddingTop}px ${paddingBottom}`;
+    padding = [paddingLeft, paddingRight, paddingTop, paddingBottom]
+      .map((val) => val + 'px')
+      .join(' ');
   }
   return `
     padding: ${padding};

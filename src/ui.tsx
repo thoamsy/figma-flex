@@ -34,11 +34,18 @@ const cssToCamelCase = (str: string) =>
 
 const codeConvert: Record<SupportWays, (code: string) => string> = {
   css: (code) => code,
-  emotion: (code) => `
-   style.div = \`
-     ${code}
-   \`
-  `,
+  emotion: (code) => {
+    // 这里不使用 `` 是因为它会有烦人的空格
+    const twoSpace = '  ';
+    return (
+      'style.div`' +
+      '\n' +
+      twoSpace +
+      code.replace(/\n/g, (lf) => lf + twoSpace) +
+      '\n' +
+      '`'
+    );
+  },
   camelCase: cssToCamelCase,
   tailwind: (code) => `this is tailwind ��`,
 };
