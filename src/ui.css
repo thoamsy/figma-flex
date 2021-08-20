@@ -1,0 +1,15 @@
+.container {
+  display: flex;
+  width: 300px;
+  height: 300px;
+  font-family: monospace;
+  background: white;
+  flex-direction: column;
+
+  position: relative;
+}
+
+#share {
+  height: 48px;
+  width: 72px;
+}
