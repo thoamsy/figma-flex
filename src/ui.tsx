@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 import prismjs from 'prismjs';
 // import CSS from 'prismjs/components/prism-css';
 import 'prismjs/themes/prism-twilight.css';
+import './tailwind.css';
 import './ui.css';
 import ExportWay, { SupportWays, supportWays } from './ExportWay';
 
@@ -105,26 +106,18 @@ const App = () => {
   }
 
   return (
-    <div className="container">
+    <div className="p-3 container mx-auto flex flex-col gap-3 font-mono w-full h-72">
       <ExportWay value={exportWay} onChange={onExportWayChange} />
-      <div style={{ position: 'relative' }}>
+      <div className="relative">
         <pre
-          className="language-css"
-          style={{
-            fontSize: 14,
-            width: 270,
-            overflow: 'scroll',
-          }}
+          className="overflow-scroll language-css text-base w-4/5"
           dangerouslySetInnerHTML={{ __html: codeHTML }}
         />
         {codeHTML && (
           <button
             onClick={onShareButtonClick}
+            className="w-9 h-9 rounded bg-gray-300 hover:bg-gray-500 absolute"
             style={{
-              borderRadius: 4,
-              width: 36,
-              height: 36,
-              position: 'absolute',
               right: 0,
               top: 4,
             }}
@@ -136,14 +129,7 @@ const App = () => {
       </div>
 
       <button
-        style={{
-          display: 'flex',
-          alignSelf: 'stretch',
-          height: 42,
-          borderRadius: 4,
-          backgroundColor: 'ButtonFace',
-          color: 'ButtonText',
-        }}
+        className="flex p-4 self-stretch items-center justify-center h-10 rounded bg-blue-400 hover:bg-blue-300 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
         onClick={() =>
           parent.postMessage({ pluginMessage: { type: 'hide' } }, '*')
         }

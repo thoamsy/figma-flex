@@ -62,14 +62,26 @@ const domLayout = (node: AutoLayoutRecord) => {
   `;
 };
 
+const isFrameFixed = (record: AutoLayoutRecord) =>
+  record.layoutAlign !== 'STRETCH' &&
+  record.counterAxisSizingMode === 'FIXED' &&
+  record.primaryAxisSizingMode === 'FIXED';
+
+// NOTE: 如果 parent 的轴是 row，那么 fill 就代表 flex: 1，否则是 align-self: stretch
+// 同样的，换成 fixed 的话，就都是 flex: none 且 align-self 也不为 stretch
+// 但其实换个思路，以 parent 的轴为 row 为例，如果当前的 frame 在 x 上是 fill，说明两者一致，那就用 flex: 1，如果方向不同就用 align-self: stretch。所以只需要查看 parent 的方向和当前 frame 的 primary 和 counter 就好了
+
+const layoutToTailwind = (record: AutoLayoutRecord) => {
+  const result = `flex ${
+    record.layoutMode === 'HORIZONTAL' ? 'flex-row' : 'flex-col'
+  }`;
+};
+
 const layoutToFlexCSS = (record: AutoLayoutRecord): string => {
   const isVerticalStretch =
     record.layoutMode === 'VERTICAL' && record.layoutAlign === 'STRETCH';
 
-  const isFixed =
-    record.layoutAlign !== 'STRETCH' &&
-    record.counterAxisSizingMode === 'FIXED' &&
-    record.primaryAxisSizingMode === 'FIXED';
+  const isFixed = isFrameFixed(record);
 
   // FIXME: the align-self seems like wrong, I should read its parent to know the layoutMode
   return `
